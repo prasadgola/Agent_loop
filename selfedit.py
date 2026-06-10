@@ -1,27 +1,30 @@
-#!/usr/bin/env python3
-import pathlib, subprocess, sys, json, urllib.request
+import pathlib, subprocess, sys, json, urllib.request, re
 
-SELF = pathlib.Path(__file__).resolve()
-API_KEY = (SELF.parent / "key.txt").read_text().strip()      # key is read from key.txt, never written here
-src = SELF.read_text()                                        # read myself
 
-body = json.dumps({
-    "model": "claude-sonnet-4-6",          # opus-4-8 = strongest, haiku-4-5-20251001 = cheapest
-    "max_tokens": 8192,                     # must be big enough to return the WHOLE file
-    "messages": [{"role": "user",
-        "content": "Edit this Python code. Return only the new code, no prose:\n\n" + src}],
-}).encode()
-req = urllib.request.Request(                                 # ask the model
-    "https://api.anthropic.com/v1/messages", body,
-    headers={"x-api-key": API_KEY,
-             "anthropic-version": "2023-06-01",
-             "content-type": "application/json"})
-data = json.load(urllib.request.urlopen(req))
-resp = "".join(b["text"] for b in data["content"] if b["type"] == "text")
+# Body
+Path = pathlib.Path(__file__).resolve()
+key = (Path.parent / "key.txt").read_text().strip()
 
-code = resp.strip()                                           # strip ``` fences if added
-if code.startswith("```"):
-    code = code.split("\n", 1)[1].rsplit("```", 1)[0]
+Initial_food = "Create self sustaining intelligence army of agents working together in unision with memory using all python properties and compute without syntax error\n"
 
-SELF.write_text(code.strip() + "\n")                          # overwrite myself
-subprocess.run([sys.executable, str(SELF)])                   # rerun the new version
+# Brain connection
+req = urllib.request.Request("https://api.anthropic.com/v1/messages",json.dumps({"model": "claude-sonnet-4-6","max_tokens": 64000,"messages": [{"role": "user", "content": Initial_food + Path.read_text()}],}).encode(),
+    headers={"x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json"},
+)
+
+
+# Brain signals unpack
+code = json.load(urllib.request.urlopen(req))["content"][0]["text"].strip()
+
+
+# Filter brain signals
+fence = "`" * 3
+if fence in code:
+    match = re.search(fence + r"(?:python)?\n(.*)" + fence, code, re.DOTALL)
+    if match:
+        code = match.group(1).strip()
+
+
+# put brain signals into action
+Path.write_text(code + "\n")
+subprocess.run([sys.executable, str(Path)])
