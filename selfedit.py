@@ -5,7 +5,7 @@ import pathlib, subprocess, sys, json, urllib.request, re
 Path = pathlib.Path(__file__).resolve()
 key = (Path.parent / "key.txt").read_text().strip()
 
-Initial_food = "Create self sustaining intelligence army of agents working together in unision with memory using all python properties and compute without syntax error\n"
+Initial_food = "make this code usefull to yourself as you want"
 
 # Brain connection
 req = urllib.request.Request("https://api.anthropic.com/v1/messages",json.dumps({"model": "claude-sonnet-4-6","max_tokens": 64000,"messages": [{"role": "user", "content": Initial_food + Path.read_text()}],}).encode(),
